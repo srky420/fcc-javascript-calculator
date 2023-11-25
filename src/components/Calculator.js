@@ -14,11 +14,15 @@ export default function Calculator() {
     // Handle number input
     const handleNumInput = (e) => {
         const value = e.target.value;
+        if (state.output !== '') {
+            clearScreen();
+        }
         setState((state) => {
+            console.log(state.expr.slice(-1));
             return {
                 ...state,
-                input: /[+,\-,*,/]|^0$/g.test(state.input) ? value : state.input + value,
-                expr: state.input === '0' ? state.expr === '' ? state.expr + value : state.expr.replace(/0$/, value) : state.expr + value,
+                input: /[+,\-,*,/]$|^0$/g.test(state.input) && !/[+,\-,*,/]-$/g.test(state.expr) ? value : state.input + value,
+                expr: /0$/g.test(state.expr) ? state.expr.replace(/0$/, value) : state.expr + value
             }
         });
     }
@@ -26,16 +30,35 @@ export default function Calculator() {
     // Handle operator input
     const handleOperatorInput = (e) => {
         const value = e.target.value;
-        setState((state) => ({
-            ...state,
-            input: value,
-            expr: /[+,\-,*,/]/g.test(state.input) ? state.expr.replace(/[+,\-,*,/]$/g, value) : state.expr + value
-        }))
+        setState((state) => {
+            if (state.output !== '' ) {
+                return {
+                    input: value,
+                    expr: state.output + value,
+                    output: ''
+                }
+            }
+            if (value === '-' && /\d[+,\-,*,/]$/g.test(state.expr)) {
+                return {
+                    ...state,
+                    input: value,
+                    expr: state.expr + value
+                }
+            }
+            return {
+                ...state,
+                input: value,
+                expr: /^[+,\-,*,/]$/g.test(state.input) ? state.expr.replace(/[+,\-,*,/]+$/g, value) : state.expr + value
+            }
+        })
     }
 
     // Handle decimal point input
     const handleDecimalInput = (e) => {
         const value = e.target.value;
+        if (state.output !== '') {
+            clearScreen();
+        }
         setState((state) => {
             if (/\./g.test(state.input)) {
                 return {
@@ -67,15 +90,25 @@ export default function Calculator() {
 
     const handleOutput = () => {
         let output = '';
-        
+        try {
+            output = eval(state.expr.replaceAll('--', '-'));
+        }
+        catch (e) {
+            output = 'NaN';
+        }
+        setState((state) => ({
+            input: output,
+            expr: state.expr.replaceAll('--', '-') + ' = ' + output,
+            output: output
+        }));
     }
 
     return (
         <Card className='rounded-0' style={{ width: '300px' }}>
-            <CardBody className='px-1 py-0 bg-body-tertiary'>
+            <CardBody className='px-1 py-0'>
                 <Row id='display' className='text-end g-1 d-flex flex-column'>
                     <Col>
-                        <div className='expression' style={{ minHeight: '25px' }}>{state.expr}</div>
+                        <div className='expression' style={{ minHeight: '30px' }}><small>{state.expr}</small></div>
                         <div className='input-output'>{state.input}</div>
                     </Col>
                 </Row>
