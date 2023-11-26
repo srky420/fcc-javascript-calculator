@@ -3,7 +3,7 @@ html {
 }
 
 body {
-  background-color: gray !important;
+  background-color: darkslategray !important;
 }
 
 .App {
@@ -12,5 +12,4 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  font-family: 'Courier New', Courier, monospace;
 }
