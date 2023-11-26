@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import Button from 'react-bootstrap/Button';
-import { Row, Col, Card, CardBody, Container } from 'react-bootstrap';
+import { Button, Row, Col, Card, CardBody } from 'react-bootstrap';
 
 // Define component
 export default function Calculator() {
+    
     // Define state
     const [state, setState] = useState({
         input: '0',
@@ -18,6 +18,7 @@ export default function Calculator() {
             clearScreen();
         }
         setState((state) => {
+            // Digit limit
             if (state.input.length >= 22) {
                 return {
                     ...state
@@ -35,6 +36,7 @@ export default function Calculator() {
     const handleOperatorInput = (e) => {
         const value = e.target.value;
         setState((state) => {
+            // Perform calculation on output of previous expr
             if (state.output !== '') {
                 return {
                     input: value,
@@ -42,6 +44,7 @@ export default function Calculator() {
                     output: ''
                 }
             }
+            // Allow minus '-' input
             if (value === '-' && /\d[+,\-,*,/]$/g.test(state.expr)) {
                 return {
                     ...state,
@@ -64,11 +67,13 @@ export default function Calculator() {
             clearScreen();
         }
         setState((state) => {
+            // Restrict one decimal point for an input
             if (/\./g.test(state.input)) {
                 return {
                     ...state
                 }
             }
+            // Append '0.' when no number before decimal point
             if (/[+,\-,*,/]|^0$/g.test(state.input)) {
                 return {
                     ...state,
@@ -95,14 +100,24 @@ export default function Calculator() {
 
     // Handle output by evaluating expr
     const handleOutput = () => {
+
+        if (/^$|^0$|^[*,/]/.test(state.expr) || /^NaN$|\S/.test(state.output)) return
+
+        // Replace and remove unneccesary chars
         let expr = state.expr.replaceAll('--', '-').replaceAll(/[+,\-,*,/]*$/g, '')
         let output = '';
+
+        // Try to evaluate expr, on error show NaN
         try {
             output = eval(expr);
         }
         catch (e) {
             output = 'NaN';
         }
+
+        // Replace undefined with NaN
+        output = output === undefined ? 'NaN' : output;
+
         setState({
             input: output,
             expr: expr + ' = ' + output,
@@ -114,6 +129,7 @@ export default function Calculator() {
         <div>
             <Card className='rounded-0' style={{ width: '300px', backgroundColor: 'lightgrey' }}>
                 <CardBody className='px-1 py-0'>
+                    {/* Calculator Display */}
                     <Row className='text-end g-1 d-flex flex-column' style={{ fontFamily: 'monospace', fontSize: 20 }}>
                         <Col>
                             <div style={{ minHeight: '30px' }}><small>{state.expr}</small></div>
@@ -121,6 +137,7 @@ export default function Calculator() {
                         </Col>
                     </Row>
                     <hr className='mb-1 mt-0' />
+                    {/* Calculator Buttons */}
                     <Row className='g-1'>
                         <Col className='my-1' xs={9}><Button variant="danger" className='rounded-0 w-100 p-3' id='clear' onClick={clearScreen}>AC</Button></Col>
                         <Col className='my-1'><Button variant='secondary' className='rounded-0 w-100 p-3' id='divide' value='/' onClick={handleOperatorInput}>/</Button></Col>
@@ -150,8 +167,8 @@ export default function Calculator() {
                     </Row>
                 </CardBody>
             </Card>
-            <p className='text-center text-light my-2' style={{ fontSize: 16 }}>
-                By <a href="https://github.com/srky420/" className='link-light text-decoration-none' style={{ fontWeight: 'bold'}}>Shahrukh</a>
+            <p className='text-center text-light my-2' style={{ fontSize: 16, fontFamily: 'monospace' }}>
+                By <a href="https://github.com/srky420/" target='_blank' className='link-light text-decoration-none' style={{ fontWeight: 'bold'}}>Shahrukh</a>
             </p>
         </div>
     )
